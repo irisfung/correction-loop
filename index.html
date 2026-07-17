@@ -7,6 +7,41 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+
+<div id="uploadModal" class="upload-modal-backdrop">
+  <div class="upload-modal">
+    <div class="upload-modal-left">
+      <div class="upload-modal-brand">Get started</div>
+      <div class="upload-step active">
+        <div class="upload-step-num">1</div>
+        <div>
+          <div class="upload-step-title">Upload Documents</div>
+        </div>
+      </div>
+      <div class="upload-step">
+        <div class="upload-step-num">2</div>
+        <div>
+          <div class="upload-step-title">Create Schema Configuration</div>
+          <div class="upload-step-desc">Use 1 or more documents to create a schema for extracting texts from your uploads, and verify the results.</div>
+        </div>
+      </div>
+      <div class="upload-step">
+        <div class="upload-step-num">3</div>
+        <div>
+          <div class="upload-step-title">Run Extraction on All Documents</div>
+        </div>
+      </div>
+    </div>
+    <div class="upload-modal-right">
+      <div class="upload-target" onclick="dismissUploadModal()">
+        <div class="upload-target-icon">&#8593;</div>
+        <div class="upload-target-title">Click to upload documents</div>
+        <div class="upload-target-sub">For this prototype, click here to simulate an upload &#8212; it'll take you straight to the document view.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="app" id="appRoot">
   <div class="topbar">
     <div class="topbar-left">
