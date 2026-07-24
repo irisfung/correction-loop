@@ -899,7 +899,7 @@ function renderBatchView(){
         onmouseenter="showClauseTooltip(this)" onmouseleave="hideClauseTooltip()"
         onclick="event.stopPropagation();" aria-label="Preview section text">&#128065;</span>` : "";
     return `<div class="tree-doc-row">
-      <span class="tree-doc-name" onclick="event.stopPropagation();openDocFromBatch(${d.index})">${escapeAttr(d.name)}</span>
+      <span class="tree-doc-name" onclick="event.stopPropagation();openDocFromBatch(${d.index},'${sectionKey}')">${escapeAttr(d.name)}</span>
       ${eyeHtml}
     </div>`;
   }
@@ -1057,7 +1057,7 @@ function goBack(){
   setTopbarMode("folder");
 }
 
-function openDocFromBatch(index){
+function openDocFromBatch(index, sectionKey){
   let targetId = "sample-msa";
   if(index === 14){ targetId = "msa-014"; }
   else if(index === 4){ targetId = "msa-004"; }
@@ -1069,19 +1069,35 @@ function openDocFromBatch(index){
     computeResults();
   }
   exitBatchView();
-  if(targetId === "msa-014"){
+  if(sectionKey){
+    setTimeout(() => scrollToSection(sectionKey), 60);
+  } else if(targetId === "msa-014"){
     setTimeout(scrollToAuditClause, 60);
   }
 }
 
-function scrollToAuditClause(){
+function scrollToSection(sectionKey){
   const scrollContainer = document.querySelector(".doc-scroll");
-  const target = document.getElementById("auditClauseBar");
-  if(!scrollContainer || !target) return;
+  if(!scrollContainer) return;
+
+  // Try to find element with matching data-clause-id attribute
+  let target = scrollContainer.querySelector(`[data-clause-id="${sectionKey}"]`);
+
+  // If not found and it's data_governance, also try the auditClauseBar
+  if(!target && sectionKey === "data_governance"){
+    target = document.getElementById("auditClauseBar");
+  }
+
+  if(!target) return;
+
   const containerRect = scrollContainer.getBoundingClientRect();
   const targetRect = target.getBoundingClientRect();
   const delta = targetRect.top - containerRect.top - 16;
   scrollContainer.scrollTo({ top: scrollContainer.scrollTop + delta, behavior: "smooth" });
+}
+
+function scrollToAuditClause(){
+  scrollToSection("ai_usage");
 }
 
 let auditResolved = null;
