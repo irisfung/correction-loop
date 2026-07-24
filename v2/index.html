@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Document Extraction Workflow</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="uploadModal" class="upload-modal-backdrop">
+  <div class="upload-modal">
+    <div class="upload-modal-left">
+      <div class="upload-modal-brand">Get started</div>
+      <div class="upload-step active">
+        <div class="upload-step-num">1</div>
+        <div>
+          <div class="upload-step-title">Upload Documents</div>
+        </div>
+      </div>
+      <div class="upload-step">
+        <div class="upload-step-num">2</div>
+        <div>
+          <div class="upload-step-title">Create Schema Configuration</div>
+          <div class="upload-step-desc">Use 1 or more documents to create a schema for extracting texts from your uploads, and verify the results.</div>
+        </div>
+      </div>
+      <div class="upload-step">
+        <div class="upload-step-num">3</div>
+        <div>
+          <div class="upload-step-title">Run Extraction on All Documents</div>
+        </div>
+      </div>
+    </div>
+    <div class="upload-modal-right">
+      <div class="upload-target" onclick="dismissUploadModal()">
+        <div class="upload-target-icon">&#8593;</div>
+        <div class="upload-target-title">Click to upload documents</div>
+        <div class="upload-target-sub">For this prototype, click here to simulate an upload &#8212; it'll take you straight to the document view.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="appRoot">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="back" id="topbarBack" onclick="goBack()">&#8592;</span>
+      <span class="title" id="docTitle">MSA_001</span>
+      <div class="breadcrumb" id="docBreadcrumb">
+        <div class="pill">&#9678; Parse</div>
+        <span class="arrow-sep">&#8594;</span>
+        <div class="pill active">&#10022; Extract</div>
+      </div>
+    </div>
+    <div class="topbar-right" id="docActions">
+      <button class="btn">&#8593; Export</button>
+      <button class="btn">More actions &#9662;</button>
+      <button class="btn btn-dark">&lt;/&gt; Deploy</button>
+    </div>
+    <div class="topbar-right" id="folderActions" style="display:none;">
+      <button class="btn">&#43; Add document</button>
+      <button class="btn btn-dark">&lt;/&gt; Deploy</button>
+    </div>
+  </div>
+
+  <div id="folderSubbar" class="folder-subbar" style="display:none;">
+    <span id="correctionSummaryText">0 new corrections. Next model retrain: Friday</span>
+    <button class="see-history-btn">See History</button>
+  </div>
+
+  <div class="body-row" id="singleView">
+    <!-- LEFT: document viewer -->
+    <div class="left-pane">
+      <div class="left-toolbar">
+        <div class="file-chip">
+          &#128193;
+          <button class="file-nav" onclick="prevFile()" aria-label="Previous file">&#8249;</button>
+          <span id="fileLabel">MSA_001</span>
+          <button class="file-nav" onclick="nextFile()" aria-label="Next file">&#8250;</button>
+          <span class="file-count" id="fileCount">1 / 1</span>
+        </div>
+        <div style="font-size:12px;color:var(--ink-soft);" id="pageLabel">Page 1 / 27</div>
+      </div>
+      <div id="auditCallout" class="audit-callout" style="display:none;"></div>
+      <div id="redrawBanner" class="redraw-callout" style="display:none;">
+        <button class="redraw-callout-close" onclick="applyRedrawResult(null)" aria-label="Cancel redrawing">
+          <span class="redraw-callout-close-icon">&#10005;</span>
+          <span class="redraw-callout-close-text">Cancel</span>
+        </button>
+        <div class="redraw-callout-head">
+          <span class="redraw-callout-icon">&#9635;</span>
+          <div>
+            <div class="redraw-callout-title">Redrawing bounding box</div>
+            <p class="redraw-callout-desc">Click the box in the document to adjust the captured region.<br>
+              <i>For this prototype, canvas interactions are just mocked up.</i></p>
+          </div>
+        </div>
+        <div class="redraw-callout-actions">
+          <button class="btn" onclick="applyRedrawResult('doc')">Apply for this document</button>
+          <button class="btn btn-dark" onclick="applyRedrawResult('schema')">Apply and add config rule</button>
+        </div>
+      </div>
+      <div class="doc-scroll">
+        <!--
+        <div class="doc-sheet" id="doc-freight-invoice">
+          <div class="doc-brand">Atlas National Freight</div>
+          <div class="doc-addr">
+            4500 Logistics Parkway, Memphis, TN 38118<br>
+            Phone: (901) 555-7421 &nbsp;|&nbsp; Email: billing@atlasnationalfreight.com
+          </div>
+          <div class="doc-rule"></div>
+
+          <div class="doc-grid2">
+            <div class="doc-field">
+              <div class="doc-label">Invoice number</div>
+              <div class="doc-value" data-key="invoice_number">ANF-INV-2026-004918</div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-label">Payment terms</div>
+              <div class="doc-value" data-key="payment_terms">Net 30</div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-label">Invoice date</div>
+              <div class="doc-value" data-key="invoice_date">January 12, 2026</div>
+            </div>
+            <div class="doc-field amber">
+              <div class="doc-label">Due date</div>
+              <div class="doc-value" data-key="due_date">February 11, 2026</div>
+            </div>
+          </div>
+
+          <div class="doc-grid2" style="margin-bottom:18px;">
+            <div class="doc-box">
+              <div class="doc-section-title">Bill to</div>
+              <p class="bold">Acme Manufacturing, Inc.</p>
+              <p>Accounts Payable Dept.</p>
+              <p>1234 Industrial Parkway</p>
+              <p style="margin-bottom:8px;">Columbus, OH 43215</p>
+              <p>Customer account #: <span class="bold" data-key="customer_account">ACME-44721</span></p>
+            </div>
+            <div class="doc-box">
+              <div class="doc-section-title">Shipment information</div>
+              <p><span class="bold">PRO / freight bill #:</span> <span data-key="pro_number">778345921</span></p>
+              <p><span class="bold">Bill of lading #:</span> <span data-key="bill_of_lading">FCC-2026-001234</span></p>
+              <p><span class="bold">Pickup date:</span> <span data-key="pickup_date">January 8, 2026</span></p>
+              <p><span class="bold">Delivery date:</span> <span data-key="delivery_date">January 10, 2026</span></p>
+              <p><span class="bold">Service level:</span> <span data-key="service_level">LTL &#8211; Standard</span></p>
+              <p><span class="bold">Equipment type:</span> <span data-key="equipment_type">53' Dry Van</span></p>
+            </div>
+          </div>
+
+          <div class="doc-section-title">Route information</div>
+          <div class="doc-grid2" style="margin-bottom:18px;">
+            <div class="doc-box">
+              <div class="doc-label">Origin</div>
+              <p data-key="origin">Acme Manufacturing, Inc.<br>1234 Industrial Parkway<br>Columbus, OH 43215</p>
+            </div>
+            <div class="doc-box">
+              <div class="doc-label">Destination</div>
+              <p data-key="destination">Beta Distribution LLC<br>8900 Logistics Way<br>Dallas, TX 75241</p>
+            </div>
+          </div>
+
+          <div class="doc-section-title">Shipment details</div>
+          <table class="doc-table">
+            <thead>
+              <tr><th>Qty</th><th>Packaging</th><th>Description</th><th>NMFC</th><th>Class</th><th>Weight (lbs)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>10</td><td>Pallets</td><td>Aluminum machined components</td><td>123456</td><td>70</td><td data-key="total_weight">5,200</td></tr>
+            </tbody>
+          </table>
+        </div>
+        -->
+
+        <div class="doc-sheet" id="doc-sample-msa">
+          <div class="legal-doc">
+            <div class="legal-meta">
+              <span>EX-10.26 5 dex1026.htm FORM OF MASTER SERVICES AGREEMENT</span>
+              <span>EXHIBIT 10.26</span>
+            </div>
+            <div class="legal-title">FORM OF MASTER SERVICES AGREEMENT</div>
+
+            <div class="recital-block" data-clause-id="preamble">
+              <p>THIS MASTER SERVICES AGREEMENT (&#8220;MSA&#8221;) is made, effective as of
+                <span data-key="effective_date">&#95;&#95;&#95;&#95;&#95;&#95;&#95;&#95;</span>, by and between
+                <b>SANDRIDGE ENERGY, INC.</b>, a Delaware corporation (&#8220;<u data-key="company_name">SandRidge</u>&#8221;), and
+                <b>GREAT WHITE PRESSURE PUMPING LLC</b>, a Delaware limited liability company
+                (&#8220;<u data-key="contractor_name">Contractor</u>&#8221;).</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="scope">1. SCOPE OF AGREEMENT.</p>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.1 <u>The Work</u>. It is contemplated that from time to time Contractor will be requested by SandRidge or its
+                present or future affiliated entities to perform certain work and services (&#8220;<u>Work</u>&#8221;). Neither
+                SandRidge nor its affiliates shall be obligated to request Contractor to perform any Work, and Contractor shall not
+                be obligated to accept requests to perform Work from either SandRidge or its affiliates, but it is expressly
+                understood and agreed that any and all Work requested by SandRidge or its affiliates and accepted by Contractor
+                shall be controlled and governed by the provisions of this MSA. The term &#8220;<u>Agreement</u>&#8221; means this
+                MSA as incorporated in a Work Order (defined below), and the term &#8220;<u>Company</u>&#8221; as used herein shall
+                mean the SandRidge parent or affiliated entity that issued the Work Order.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.2 <u>Work Orders</u>. A request for Work (&#8220;<u>Work Order</u>&#8221;) may be either oral or submitted to
+                Contractor on a purchase order or similar document to the form attached hereto as
+                <span data-key="links">Exhibit C</span>. Each such request for Work shall be deemed a two-party agreement between
+                Contractor and Company and shall be deemed to incorporate and shall be subject to all the terms and conditions of
+                this MSA. When issued, such Work Orders are non-binding, negotiable offers and are subject to their express terms.
+                Such offers become a binding Work Order only after Company and Contractor have mutually agreed to all material
+                terms and conditions concerning the requested Work, materials, products, or equipment.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.3 <u>Modifications</u>. Should the parties hereto enter into any Work Order especially prepared to provide for a
+                particular job to be done by Contractor, then, except to the extent expressly modified in a writing signed by both
+                parties which refers to the conflicting term of this MSA, the terms of this MSA shall prevail with respect to any
+                conflict between the terms of such Work Order and this MSA. To acknowledge or document various events during the
+                Work, a party may from time to time sign the other party&#8217;s various forms, such as delivery tickets, labor
+                tickets, bills of lading, purchase orders, and rental tickets, but terms and conditions included on such forms do
+                not amend, modify, waive, or release any aspect of this MSA unless expressly agreed to by a writing signed in
+                accordance with this <u>Section 1.3</u>. No parol agreement of whatsoever nature entered into between Company&#8217;s
+                representative or representatives and Contractor shall ever be deemed to alter or affect the provisions of this
+                MSA.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="payment">2. PAYMENT.</p>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.1 <u>Compensation</u>. Contractor shall receive the compensation specified in the Work Order which is agreed to
+                by Company and Contractor at the time the Work Order is accepted by Company. Such payment by Company shall be
+                without prejudice to Company&#8217;s rights subsequently to challenge the correctness thereof.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.2 <u>Invoicing</u>. Invoices shall be submitted in such form and accompanied by such certification and
+                documentation as Company may reasonably request.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.3 <u>Contractor Reports</u>. When requested by Company, or if otherwise applicable, Contractor will furnish
+                regular reports (either daily, weekly, bi-weekly or monthly as requested by Company) covering any Work, materials,
+                products and equipment furnished by Contractor for which Company is obligated to pay. All overtime, mileage,
+                travel, equipment rentals, materials, products and equipment used, or any other charges incurred, shall be properly
+                documented on such reports.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="audit">3. AUDIT.</p>
+            <div class="clause-para" data-clause-parent="audit">
+              <p>Contractor shall maintain, and shall cause any of Contractor&#8217;s subcontractors to maintain, a true and
+                correct set of records pertaining to all Work performed under each Work Order, including supporting documentation,
+                for <span data-key="audit_retention_period">two (2) years</span> following completion of the Work. Company may, at
+                its expense, require Contractor, or any of Contractor&#8217;s subcontractors, at any time within said two-year
+                period to furnish sufficient evidence, with documentary support, to enable Company to verify the correctness and
+                accuracy of payments to Contractor or such subcontractors.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="inspections">4. INSPECTIONS.</p>
+            <div class="clause-para" data-clause-parent="inspections">
+              <p>All Work performed by Contractor must meet the approval of Company and shall be subject to Company&#8217;s general
+                right of inspection. The inspection or non-inspection of any portion of the Work by Company shall not constitute
+                approval thereof. Company may, but is not required to, inspect and test all supplies, materials, products, or
+                equipment, to the extent practical, at all times and places and from time to time.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="independent_contractor">5. INDEPENDENT CONTRACTOR.</p>
+            <div class="clause-para" data-clause-parent="independent_contractor">
+              <p>Company and Contractor expressly agree that Contractor is an independent contractor as to all Work performed
+                under this Agreement and that Contractor, its subcontractors, and anyone employed by either Contractor or its
+                subcontractors shall not be deemed for any purpose to be an employee, agent, servant, or representative of
+                Company. This Agreement does not create, and shall not be construed by the parties hereto or any third party as
+                creating, any agency, partnership, joint venture, or employment relationship between the parties hereto.</p>
+            </div>
+
+            <div class="legal-page-num">2</div>
+            <div class="legal-page-rule"></div>
+
+            <p class="legal-heading clause-head" data-clause-id="taxes">6. TAXES, PERMITS, AND LICENSES.</p>
+            <div class="clause-para" data-clause-parent="taxes">
+              <p>6.1 Unless otherwise agreed in writing by the parties, Contractor shall secure all licenses and permits, make all
+                cash and other deposits, provide all bonds, and give all notices required either by law, regulation, ordinance, or
+                permit in connection with any Work performed under the Agreement.</p>
+            </div>
+
+            <p class="legal-note no-indent">Sections 7&#8211;22 cover control of premises, subcontracting, personnel/equipment
+              warranties, health and safety, indemnification, insurance, and confidentiality, and are omitted from this preview.</p>
+
+            <p class="legal-heading clause-head" data-clause-id="termination">23. TERM AND TERMINATION OF MSA.</p>
+            <div class="clause-para" data-clause-parent="termination">
+              <p>This MSA shall become effective upon execution by Contractor and Company and shall continue in force and effect
+                until <span data-key="termination_notice">thirty (30) days</span> following delivery by either Company or
+                Contractor of written notice of termination to the other; provided, however, that any Work in progress on the
+                effective date of such termination shall be controlled and governed by this MSA until its completion to
+                Company&#8217;s satisfaction.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="governing_law">32. APPLICABLE LAW/JURISDICTION AND VENUE.</p>
+            <div class="clause-para" data-clause-parent="governing_law">
+              <p>This Agreement, and all the rights and duties of the parties arising out of, in connection with, or relating in
+                any way to the subject matter of this Agreement or the transactions contemplated by it, shall be governed by,
+                construed, and enforced in accordance with the laws of the
+                <span data-key="governing_law">State of Oklahoma</span> (excluding its conflict of laws rules which would refer to
+                and apply the substantive laws of another jurisdiction). Any suit or proceeding hereunder shall be brought
+                exclusively in state or federal courts located in
+                <span data-key="venue">Oklahoma City, Oklahoma</span>.</p>
+            </div>
+
+            <p class="legal-note no-indent">Sections 24&#8211;31 and 33&#8211;36, and Exhibits A&#8211;D, continue on subsequent
+              pages and are omitted from this preview.</p>
+
+            <p class="legal-heading no-indent">IN WITNESS WHEREOF, the parties hereto have caused this MSA to be signed by their
+              respective duly authorized representatives.</p>
+            <div class="legal-sig">
+              <div>
+                <div style="font-weight:700;">CONTRACTOR:</div>
+                <div>GREAT WHITE PRESSURE PUMPING LLC</div>
+                <div class="line">By: / Name: / Title:</div>
+              </div>
+              <div>
+                <div style="font-weight:700;">COMPANY:</div>
+                <div>SANDRIDGE ENERGY, INC.</div>
+                <div class="line">By: / Name: / Title:</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="doc-sheet" id="doc-msa-004" style="display:none;">
+          <div class="legal-doc">
+            <div class="legal-meta">
+              <span>EX-10.26 5 dex1026.htm FORM OF MASTER SERVICES AGREEMENT</span>
+              <span>EXHIBIT 10.26</span>
+            </div>
+            <div class="legal-title">FORM OF MASTER SERVICES AGREEMENT</div>
+
+            <div class="recital-block" data-clause-id="preamble">
+              <p>THIS MASTER SERVICES AGREEMENT (&#8220;MSA&#8221;) is made, effective as of
+                <span data-key="effective_date">&#95;&#95;&#95;&#95;&#95;&#95;&#95;&#95;</span>, by and between
+                <b>SANDRIDGE ENERGY, INC.</b>, a Delaware corporation (&#8220;<u data-key="company_name">SandRidge</u>&#8221;), and
+                <b>GREAT WHITE PRESSURE PUMPING LLC</b>, a Delaware limited liability company
+                (&#8220;<u data-key="contractor_name">Contractor</u>&#8221;).</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="scope">1. SCOPE OF AGREEMENT.</p>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.1 <u>The Work</u>. It is contemplated that from time to time Contractor will be requested by SandRidge or its
+                present or future affiliated entities to perform certain work and services (&#8220;<u>Work</u>&#8221;). Neither
+                SandRidge nor its affiliates shall be obligated to request Contractor to perform any Work, and Contractor shall not
+                be obligated to accept requests to perform Work from either SandRidge or its affiliates, but it is expressly
+                understood and agreed that any and all Work requested by SandRidge or its affiliates and accepted by Contractor
+                shall be controlled and governed by the provisions of this MSA. The term &#8220;<u>Agreement</u>&#8221; means this
+                MSA as incorporated in a Work Order (defined below), and the term &#8220;<u>Company</u>&#8221; as used herein shall
+                mean the SandRidge parent or affiliated entity that issued the Work Order.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.2 <u>Work Orders</u>. A request for Work (&#8220;<u>Work Order</u>&#8221;) may be either oral or submitted to
+                Contractor on a purchase order or similar document to the form attached hereto as
+                <span data-key="links">Exhibit C</span>. Each such request for Work shall be deemed a two-party agreement between
+                Contractor and Company and shall be deemed to incorporate and shall be subject to all the terms and conditions of
+                this MSA. When issued, such Work Orders are non-binding, negotiable offers and are subject to their express terms.
+                Such offers become a binding Work Order only after Company and Contractor have mutually agreed to all material
+                terms and conditions concerning the requested Work, materials, products, or equipment.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.3 <u>Modifications</u>. Should the parties hereto enter into any Work Order especially prepared to provide for a
+                particular job to be done by Contractor, then, except to the extent expressly modified in a writing signed by both
+                parties which refers to the conflicting term of this MSA, the terms of this MSA shall prevail with respect to any
+                conflict between the terms of such Work Order and this MSA. To acknowledge or document various events during the
+                Work, a party may from time to time sign the other party&#8217;s various forms, such as delivery tickets, labor
+                tickets, bills of lading, purchase orders, and rental tickets, but terms and conditions included on such forms do
+                not amend, modify, waive, or release any aspect of this MSA unless expressly agreed to by a writing signed in
+                accordance with this <u>Section 1.3</u>. No parol agreement of whatsoever nature entered into between Company&#8217;s
+                representative or representatives and Contractor shall ever be deemed to alter or affect the provisions of this
+                MSA.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="payment">2. PAYMENT.</p>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.1 <u>Compensation</u>. Contractor shall receive the compensation specified in the Work Order which is agreed to
+                by Company and Contractor at the time the Work Order is accepted by Company. Such payment by Company shall be
+                without prejudice to Company&#8217;s rights subsequently to challenge the correctness thereof.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.2 <u>Invoicing</u>. Invoices shall be submitted in such form and accompanied by such certification and
+                documentation as Company may reasonably request.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.3 <u>Contractor Reports</u>. When requested by Company, or if otherwise applicable, Contractor will furnish
+                regular reports (either daily, weekly, bi-weekly or monthly as requested by Company) covering any Work, materials,
+                products and equipment furnished by Contractor for which Company is obligated to pay. All overtime, mileage,
+                travel, equipment rentals, materials, products and equipment used, or any other charges incurred, shall be properly
+                documented on such reports.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="audit">3. AUDIT.</p>
+            <div class="clause-para" data-clause-parent="audit">
+              <p>Contractor shall maintain, and shall cause any of Contractor&#8217;s subcontractors to maintain, a true and
+                correct set of records pertaining to all Work performed under each Work Order, including supporting documentation,
+                for <span data-key="audit_retention_period">two (2) years</span> following completion of the Work. Company may, at
+                its expense, require Contractor, or any of Contractor&#8217;s subcontractors, at any time within said two-year
+                period to furnish sufficient evidence, with documentary support, to enable Company to verify the correctness and
+                accuracy of payments to Contractor or such subcontractors.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="inspections">4. INSPECTIONS.</p>
+            <div class="clause-para" data-clause-parent="inspections">
+              <p>All Work performed by Contractor must meet the approval of Company and shall be subject to Company&#8217;s general
+                right of inspection. The inspection or non-inspection of any portion of the Work by Company shall not constitute
+                approval thereof. Company may, but is not required to, inspect and test all supplies, materials, products, or
+                equipment, to the extent practical, at all times and places and from time to time.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="independent_contractor">5. INDEPENDENT CONTRACTOR.</p>
+            <div class="clause-para" data-clause-parent="independent_contractor">
+              <p>Company and Contractor expressly agree that Contractor is an independent contractor as to all Work performed
+                under this Agreement and that Contractor, its subcontractors, and anyone employed by either Contractor or its
+                subcontractors shall not be deemed for any purpose to be an employee, agent, servant, or representative of
+                Company. This Agreement does not create, and shall not be construed by the parties hereto or any third party as
+                creating, any agency, partnership, joint venture, or employment relationship between the parties hereto.</p>
+            </div>
+
+            <div class="legal-page-num">2</div>
+            <div class="legal-page-rule"></div>
+
+            <p class="legal-heading clause-head" data-clause-id="taxes">6. TAXES, PERMITS, AND LICENSES.</p>
+            <div class="clause-para" data-clause-parent="taxes">
+              <p>6.1 Unless otherwise agreed in writing by the parties, Contractor shall secure all licenses and permits, make all
+                cash and other deposits, provide all bonds, and give all notices required either by law, regulation, ordinance, or
+                permit in connection with any Work performed under the Agreement.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="data_governance">7. DATA GOVERNANCE.</p>
+            <div class="clause-para" data-clause-parent="data_governance">
+              <p>The parties agree to implement reasonable data management practices governing the collection, use, storage, and
+                disposal of data shared under this Agreement, including classification of data, restriction of access, and
+                retention periods in accordance with applicable law.</p>
+            </div>
+
+            <p class="legal-note no-indent">Sections 8&#8211;22 cover control of premises, subcontracting, personnel/equipment
+              warranties, health and safety, indemnification, insurance, and confidentiality, and are omitted from this preview.</p>
+
+            <p class="legal-heading clause-head" data-clause-id="termination">23. TERM AND TERMINATION OF MSA.</p>
+            <div class="clause-para" data-clause-parent="termination">
+              <p>This MSA shall become effective upon execution by Contractor and Company and shall continue in force and effect
+                until <span data-key="termination_notice">thirty (30) days</span> following delivery by either Company or
+                Contractor of written notice of termination to the other; provided, however, that any Work in progress on the
+                effective date of such termination shall be controlled and governed by this MSA until its completion to
+                Company&#8217;s satisfaction.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="governing_law">32. APPLICABLE LAW/JURISDICTION AND VENUE.</p>
+            <div class="clause-para" data-clause-parent="governing_law">
+              <p>This Agreement, and all the rights and duties of the parties arising out of, in connection with, or relating in
+                any way to the subject matter of this Agreement or the transactions contemplated by it, shall be governed by,
+                construed, and enforced in accordance with the laws of the
+                <span data-key="governing_law">State of Oklahoma</span> (excluding its conflict of laws rules which would refer to
+                and apply the substantive laws of another jurisdiction). Any suit or proceeding hereunder shall be brought
+                exclusively in state or federal courts located in
+                <span data-key="venue">Oklahoma City, Oklahoma</span>.</p>
+            </div>
+
+            <p class="legal-note no-indent">Sections 24&#8211;31 and 33&#8211;36, and Exhibits A&#8211;D, continue on subsequent
+              pages and are omitted from this preview.</p>
+
+            <p class="legal-heading no-indent">IN WITNESS WHEREOF, the parties hereto have caused this MSA to be signed by their
+              respective duly authorized representatives.</p>
+            <div class="legal-sig">
+              <div>
+                <div style="font-weight:700;">CONTRACTOR:</div>
+                <div>GREAT WHITE PRESSURE PUMPING LLC</div>
+                <div class="line">By: / Name: / Title:</div>
+              </div>
+              <div>
+                <div style="font-weight:700;">COMPANY:</div>
+                <div>SANDRIDGE ENERGY, INC.</div>
+                <div class="line">By: / Name: / Title:</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="doc-sheet" id="doc-msa-014" style="display:none;">
+          <div class="legal-doc">
+            <div class="legal-meta">
+              <span>EXHIBIT 10.26</span>
+              <span>MSA_014.pdf</span>
+            </div>
+            <div class="legal-title">MASTER SERVICES AGREEMENT</div>
+
+            <div class="recital-block" data-clause-id="preamble">
+              <p>THIS MASTER SERVICES AGREEMENT (&#8220;MSA&#8221;) is made, effective as of
+                <span data-key="effective_date">&#95;&#95;&#95;&#95;&#95;&#95;&#95;&#95;</span>, by and between
+                <b>IRIS FUNG CO.</b>, a Delaware corporation (&#8220;<u data-key="company_name">IrisFung</u>&#8221;), and
+                <b>GREAT WHITE SHARK</b>, a Delaware limited liability company
+                (&#8220;<u data-key="contractor_name">Contractor</u>&#8221;).</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="scope">1. SCOPE OF AGREEMENT.</p>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.1 <u>The Work</u>. It is contemplated that from time to time Contractor will be requested by SandRidge or its
+                present or future affiliated entities to perform certain work and services (&#8220;<u>Work</u>&#8221;). Neither
+                SandRidge nor its affiliates shall be obligated to request Contractor to perform any Work, and Contractor shall not
+                be obligated to accept requests to perform Work from either SandRidge or its affiliates, but it is expressly
+                understood and agreed that any and all Work requested by SandRidge or its affiliates and accepted by Contractor
+                shall be controlled and governed by the provisions of this MSA.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.2 <u>Work Orders</u>. A request for Work (&#8220;<u>Work Order</u>&#8221;) may be either oral or submitted to
+                Contractor on a purchase order or similar document to the form attached hereto as
+                <span data-key="links">Exhibit C</span>. Each such request for Work shall be deemed a two-party agreement between
+                Contractor and Company and shall be deemed to incorporate and shall be subject to all the terms and conditions of
+                this MSA.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="scope">
+              <p>1.3 <u>Modifications</u>. Should the parties hereto enter into any Work Order especially prepared to provide for a
+                particular job to be done by Contractor, then, except to the extent expressly modified in a writing signed by both
+                parties, the terms of this MSA shall prevail with respect to any conflict between the terms of such Work Order and
+                this MSA.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="payment">2. PAYMENT.</p>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.1 <u>Compensation</u>. Contractor shall receive the compensation specified in the Work Order which is agreed to
+                by Company and Contractor at the time the Work Order is accepted by Company.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.2 <u>Invoicing</u>. Invoices shall be submitted in such form and accompanied by such certification and
+                documentation as Company may reasonably request.</p>
+            </div>
+            <div class="clause-para" data-clause-parent="payment">
+              <p>2.3 <u>Contractor Reports</u>. When requested by Company, Contractor will furnish regular reports covering any
+                Work, materials, products and equipment furnished by Contractor for which Company is obligated to pay.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="audit">3. AUDIT.</p>
+            <div class="clause-para" data-clause-parent="audit">
+              <p>Contractor shall maintain, and shall cause any of Contractor&#8217;s subcontractors to maintain, a true and
+                correct set of records pertaining to all Work performed under each Work Order, including supporting documentation,
+                for <span data-key="audit_retention_period">two (2) years</span> following completion of the Work.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="inspections">4. INSPECTIONS.</p>
+            <div class="clause-para" data-clause-parent="inspections">
+              <p>All Work performed by Contractor must meet the approval of Company and shall be subject to Company&#8217;s general
+                right of inspection. Company&#8217;s inspection and testing shall not relieve Contractor from any responsibility
+                regarding defects or other failures.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="independent_contractor">5. INDEPENDENT CONTRACTOR.</p>
+            <div class="clause-para" data-clause-parent="independent_contractor">
+              <p>Company and Contractor expressly agree that Contractor is an independent contractor as to all Work performed
+                under this Agreement and that Contractor, its subcontractors, and anyone employed by either Contractor or its
+                subcontractors shall not be deemed for any purpose to be an employee, agent, servant, or representative of
+                Company.</p>
+            </div>
+
+            <div class="legal-page-num" id="msa014PageNum">2</div>
+            <div class="legal-page-rule" id="msa014PageRule"></div>
+
+            <p id="msa014OrphanPara">Contractor further agrees that all tools, equipment, and materials brought onto Company&#8217;s premises in
+              connection with the Work remain the sole property of Contractor unless otherwise specified in the applicable
+              Work Order, and Company shall bear no responsibility for loss or damage to such property except to the extent
+              caused by Company&#8217;s gross negligence or willful misconduct.</p>
+
+            <p class="legal-heading clause-head" data-clause-id="taxes">6. TAXES, PERMITS, AND LICENSES.</p>
+            <div class="clause-para" data-clause-parent="taxes">
+              <p>6.1 Unless otherwise agreed in writing by the parties, Contractor shall secure all licenses and permits, make all
+                cash and other deposits, provide all bonds, and give all notices required either by law, regulation, ordinance, or
+                permit in connection with any Work performed under the Agreement.</p>
+            </div>
+
+            <p class="legal-note no-indent">Section 7 covers control of premises and is omitted from this preview.</p>
+
+            <p class="legal-heading clause-head" data-clause-id="ai_usage">8. AI USAGE.</p>
+            <div class="clause-para audit-flag-target" id="auditClauseBar" data-clause-parent="ai_usage">
+              <p>Unless otherwise agreed upon in writing by the parties, Contractor agrees to not utilize Artificial Intelligence
+                (AI) through proprietary models or third party models UNLESS Contractor discloses to IrisFung 30 days in advance
+                in writing, including specifications of AI usage as outlined by
+                <span class="audit-highlight" id="auditHighlightTarget" data-key="links">Exhibit A</span>. In the event that
+                Contractor uses AI to perform work hereunder, or subcontracts any parties that use AI, then such contracts shall
+                contain releases of liability for damage to property of such subcontractor, insurance requirements, and hold
+                harmless provisions equivalent to Articles 15 and 16 of this MSA.</p>
+            </div>
+
+            <p class="legal-note no-indent">Sections 9&#8211;22 cover personnel/equipment warranties, health and safety,
+              indemnification, insurance, and confidentiality, and are omitted from this preview.</p>
+
+            <p class="legal-heading clause-head" data-clause-id="termination">23. TERM AND TERMINATION OF MSA.</p>
+            <div class="clause-para" data-clause-parent="termination">
+              <p>This MSA shall become effective upon execution by Contractor and Company and shall continue in force and effect
+                until <span data-key="termination_notice">thirty (30) days</span> following delivery by either Company or
+                Contractor of written notice of termination to the other.</p>
+            </div>
+
+            <p class="legal-heading clause-head" data-clause-id="governing_law">32. APPLICABLE LAW/JURISDICTION AND VENUE.</p>
+            <div class="clause-para" data-clause-parent="governing_law">
+              <p>This Agreement, and all the rights and duties of the parties arising out of, in connection with, or relating in
+                any way to the subject matter of this Agreement, shall be governed by, construed, and enforced in accordance with
+                the laws of the <span data-key="governing_law">State of Oklahoma</span>. Any suit or proceeding hereunder shall be
+                brought exclusively in state or federal courts located in
+                <span data-key="venue">Oklahoma City, Oklahoma</span>.</p>
+            </div>
+
+            <p class="legal-note no-indent">Sections 24&#8211;31 and 33&#8211;36, and Exhibits A&#8211;D, continue on subsequent
+              pages and are omitted from this preview.</p>
+
+            <p class="legal-heading no-indent">IN WITNESS WHEREOF, the parties hereto have caused this MSA to be signed by their
+              respective duly authorized representatives.</p>
+            <div class="legal-sig">
+              <div>
+                <div style="font-weight:700;">CONTRACTOR:</div>
+                <div>GREAT WHITE PRESSURE PUMPING LLC</div>
+                <div class="line">By: / Name: / Title:</div>
+              </div>
+              <div>
+                <div style="font-weight:700;">COMPANY:</div>
+                <div>SANDRIDGE ENERGY, INC.</div>
+                <div class="line">By: / Name: / Title:</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: configuration / results -->
+    <div class="right-pane">
+      <div class="tabs">
+        <div class="tab active" id="tabConfig" onclick="setTab('config')">&#9881; Configurations</div>
+        <div class="tab" id="tabResults" onclick="setTab('results')">&#128196; Results</div>
+      </div>
+
+      <div class="tab-body" id="configBody">
+        <div class="section-card">
+          <div class="section-title">Instructions</div>
+          <p class="section-sub">Give the model context for this document type.</p>
+          <textarea id="systemPrompt">This is an MSA for a contractor.</textarea>
+          <div id="promptChangeNotice" class="prompt-change-notice" style="display:none;">
+            <span>Last changed by AI &#183; <span id="promptChangeTime"></span></span>
+            <button class="prompt-revert-btn" onclick="revertPromptChange()">Revert</button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Schema builder</div>
+              <p class="section-sub" style="margin-bottom:0;">Define the fields you'd like to extract from the document.</p>
+            </div>
+            <div class="schema-toolbar">
+              <button class="icon-btn">Import</button>
+              <button class="icon-btn">Copy</button>
+              <button class="icon-btn">&#10024; Generate</button>
+            </div>
+          </div>
+          <div id="fieldList"></div>
+          <div class="add-field-bar">
+            <button class="add-field-btn" onclick="addField()">+ Add field</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-body" id="resultsBody" style="display:none;"></div>
+
+      <div class="footer-bar">
+        <div class="allfiles"><input type="checkbox" id="allFiles"> <label for="allFiles" id="allFilesLabel">All files</label></div>
+        <button class="run-btn" onclick="handleRunClick()">&#9654; Run</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="batch-loading" id="batchLoading" style="display:none;">
+    <div class="spinner"></div>
+    <div class="batch-loading-text" id="batchLoadingText">Running extraction on 100 files&#8230;</div>
+  </div>
+
+  <div class="body-row" id="batchView" style="display:none;">
+    <div class="batch-left">
+      <div class="batch-left-header">
+        <div class="section-title" style="font-size:14px;">Documents <span style="color:var(--ink-soft);font-weight:400;">(<span id="batchFileCount">100</span>)</span></div>
+        </div>
+      <div id="batchFlagCallout"></div>
+      <div class="doc-grid" id="docGrid"></div>
+    </div>
+    <div class="batch-right">
+      <div class="batch-right-header">
+        <div class="section-title" style="font-size:14px;">Structure summary</div>
+        <p class="section-sub" style="margin:2px 0 0;">How the extracted sections branch across the batch</p>
+      </div>
+      <div class="batch-stats-row" id="batchStats"></div>
+      <div class="tree-wrap" id="treeWrap"></div>
+    </div>
+  </div>
+</div>
+
+<div class="reset-bar">
+  <button class="reset-btn" id="resetBtn" onclick="handleResetClick(this)">
+    &#8635; <span id="resetBtnLabel">Reset for prototype</span>
+  </button>
+</div>
+
+
+<script src="js/app.js"></script>
+</body>
+</html>
