@@ -1335,7 +1335,7 @@ function setTopbarMode(mode){
   document.getElementById("docActions").style.display = isFolder ? "none" : "flex";
   document.getElementById("folderActions").style.display = isFolder ? "flex" : "none";
   document.getElementById("docTitle").textContent = isFolder ? "MSAs" : DOCS[activeFileIndex].label;
-  document.getElementById("folderSubbar").style.display = isFolder ? "flex" : "none";
+  document.getElementById("folderSubbar").style.display = isFolder ? "block" : "none";
   if(isFolder){ updateCorrectionSummaryText(); }
 }
 
