@@ -1346,6 +1346,8 @@ function updateCorrectionSummaryText(){
 
 let modelRulesExpanded = false;
 const modelRulesTimeline = [];
+let proposedRules = [];
+let currentProposedRuleIndex = 0;
 
 function toggleModelRules(){
   modelRulesExpanded = !modelRulesExpanded;
@@ -1355,8 +1357,175 @@ function toggleModelRules(){
   timeline.style.display = modelRulesExpanded ? "block" : "none";
   caret.classList.toggle("open", modelRulesExpanded);
 
-  if(modelRulesExpanded && modelRulesTimeline.length > 0){
-    renderModelRulesTimeline();
+  if(modelRulesExpanded){
+    if(proposedRules.length > 0){
+      document.getElementById("modelRulesProposed").style.display = "block";
+      renderProposedRuleCarousel();
+    }
+    if(modelRulesTimeline.length > 0){
+      renderModelRulesTimeline();
+    }
+  }
+}
+
+function initializeProposedRules(){
+  proposedRules = [
+    {
+      text: "Sections describing contractor independence and non-employment status should be labeled as Independent Contractor",
+      documents: [
+        { index: 0, name: "MSA_001" },
+        { index: 4, name: "MSA_004" },
+        { index: 14, name: "MSA_014" }
+      ],
+      count: 12
+    },
+    {
+      text: "Clauses defining audit rights and record retention requirements should be labeled as Audit",
+      documents: [
+        { index: 0, name: "MSA_001" },
+        { index: 4, name: "MSA_004" }
+      ],
+      count: 8
+    },
+    {
+      text: "Provisions regarding payment terms, invoicing, and compensation should be labeled as Payment",
+      documents: [
+        { index: 0, name: "MSA_001" },
+        { index: 14, name: "MSA_014" }
+      ],
+      count: 15
+    }
+  ];
+
+  const flag = document.getElementById("modelRulesFlag");
+  if(flag && proposedRules.length > 0){
+    flag.textContent = `${proposedRules.length} rule${proposedRules.length === 1 ? '' : 's'} ready for review`;
+    flag.style.display = "inline-block";
+  }
+}
+
+function renderProposedRuleCarousel(){
+  if(proposedRules.length === 0){
+    document.getElementById("modelRulesProposed").style.display = "none";
+    return;
+  }
+
+  const rule = proposedRules[currentProposedRuleIndex];
+  const card = document.getElementById("proposedRuleCard");
+
+  const docLinks = rule.documents.map(d =>
+    `<a href="#" class="proposed-rule-doc-link" onclick="event.preventDefault();openDocFromBatch(${d.index})">${escapeAttr(d.name)}</a>`
+  ).join(', ');
+
+  card.innerHTML = `
+    <div class="proposed-rule-header">Proposed rule:</div>
+    <div class="proposed-rule-text">${rule.text}</div>
+    <div class="proposed-rule-evidence">
+      Similar correction made in ${rule.count} documents: ${docLinks}
+    </div>
+    <div class="proposed-rule-viewer">
+      <div class="proposed-rule-thumbnails">
+        ${rule.documents.map((d, idx) => `
+          <div class="proposed-rule-thumb ${idx === 0 ? 'active' : ''}" onclick="selectProposedRuleDoc(${idx})">
+            Doc ${d.index + 1}
+          </div>
+        `).join('')}
+      </div>
+      <div class="proposed-rule-viewer-content" id="proposedRuleViewerContent">
+        Select a document to preview
+      </div>
+    </div>
+    <div class="proposed-rule-actions">
+      <button class="proposed-rule-btn-save" onclick="saveProposedRule(${currentProposedRuleIndex})">Save rule</button>
+      <button class="proposed-rule-btn-dismiss" onclick="dismissProposedRule(${currentProposedRuleIndex})">Dismiss</button>
+    </div>
+  `;
+
+  // Update carousel navigation
+  const prevBtn = document.getElementById("carouselPrev");
+  const nextBtn = document.getElementById("carouselNext");
+
+  if(proposedRules.length > 1){
+    prevBtn.style.display = "flex";
+    nextBtn.style.display = "flex";
+    prevBtn.disabled = currentProposedRuleIndex === 0;
+    nextBtn.disabled = currentProposedRuleIndex === proposedRules.length - 1;
+  } else {
+    prevBtn.style.display = "none";
+    nextBtn.style.display = "none";
+  }
+
+  // Update indicators
+  const indicators = document.getElementById("carouselIndicators");
+  indicators.innerHTML = proposedRules.map((_, idx) =>
+    `<div class="carousel-indicator ${idx === currentProposedRuleIndex ? 'active' : ''}" onclick="goToProposedRule(${idx})"></div>`
+  ).join('');
+}
+
+function prevProposedRule(){
+  if(currentProposedRuleIndex > 0){
+    currentProposedRuleIndex--;
+    renderProposedRuleCarousel();
+  }
+}
+
+function nextProposedRule(){
+  if(currentProposedRuleIndex < proposedRules.length - 1){
+    currentProposedRuleIndex++;
+    renderProposedRuleCarousel();
+  }
+}
+
+function goToProposedRule(index){
+  currentProposedRuleIndex = index;
+  renderProposedRuleCarousel();
+}
+
+function selectProposedRuleDoc(docIndex){
+  // Update active thumbnail
+  document.querySelectorAll('.proposed-rule-thumb').forEach((thumb, idx) => {
+    thumb.classList.toggle('active', idx === docIndex);
+  });
+
+  // Show preview (mock content for now)
+  const viewer = document.getElementById('proposedRuleViewerContent');
+  viewer.textContent = 'Document preview would appear here';
+}
+
+function saveProposedRule(index){
+  const rule = proposedRules[index];
+
+  // Add to timeline
+  addModelRule(rule.text);
+  correctionCount++;
+  updateCorrectionSummaryText();
+
+  // Remove from proposed
+  proposedRules.splice(index, 1);
+
+  // Update flag
+  const flag = document.getElementById("modelRulesFlag");
+  if(proposedRules.length === 0){
+    flag.style.display = "none";
+    document.getElementById("modelRulesProposed").style.display = "none";
+  } else {
+    flag.textContent = `${proposedRules.length} rule${proposedRules.length === 1 ? '' : 's'} ready for review`;
+    currentProposedRuleIndex = Math.min(currentProposedRuleIndex, proposedRules.length - 1);
+    renderProposedRuleCarousel();
+  }
+}
+
+function dismissProposedRule(index){
+  proposedRules.splice(index, 1);
+
+  const flag = document.getElementById("modelRulesFlag");
+  if(proposedRules.length === 0){
+    flag.style.display = "none";
+    document.getElementById("modelRulesProposed").style.display = "none";
+  } else {
+    flag.textContent = `${proposedRules.length} rule${proposedRules.length === 1 ? '' : 's'} ready for review`;
+    currentProposedRuleIndex = Math.min(currentProposedRuleIndex, proposedRules.length - 1);
+    renderProposedRuleCarousel();
   }
 }
 
@@ -1611,6 +1780,8 @@ function resetPrototype(){
   pendingCorrections = 0;
   modelRulesTimeline.length = 0;
   modelRulesExpanded = false;
+  currentProposedRuleIndex = 0;
+  initializeProposedRules();
 
   const msa004 = DOCS.find(d => d.id === "msa-004");
   if(msa004){

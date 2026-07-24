@@ -70,9 +70,20 @@
         <span class="model-rules-title">Model Rules</span>
         <span class="model-rules-caret" id="modelRulesCaret">&#9656;</span>
       </div>
-      <span class="model-rules-summary" id="modelRulesSummary">0 new rules</span>
+      <div class="model-rules-summary-row">
+        <span class="model-rules-flag" id="modelRulesFlag" style="display:none;">3 rules ready for review</span>
+        <span class="model-rules-summary" id="modelRulesSummary">0 new rules</span>
+      </div>
     </div>
     <div class="model-rules-timeline" id="modelRulesTimeline" style="display:none;">
+      <div class="model-rules-proposed" id="modelRulesProposed" style="display:none;">
+        <div class="proposed-rules-carousel">
+          <button class="carousel-nav carousel-prev" id="carouselPrev" onclick="prevProposedRule()" style="display:none;">&#8249;</button>
+          <div class="proposed-rule-card" id="proposedRuleCard"></div>
+          <button class="carousel-nav carousel-next" id="carouselNext" onclick="nextProposedRule()" style="display:none;">&#8250;</button>
+        </div>
+        <div class="carousel-indicators" id="carouselIndicators"></div>
+      </div>
       <div class="model-rules-timeline-content" id="modelRulesTimelineContent"></div>
     </div>
   </div>
