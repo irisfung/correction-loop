@@ -626,15 +626,58 @@
   }
 
   .folder-subbar{
+    border-bottom:1px solid var(--line);background:#fff;
+  }
+  .model-rules-header{
     display:flex;align-items:center;justify-content:space-between;
-    padding:9px 20px;border-bottom:1px solid var(--line);background:#fff;
+    padding:9px 20px;cursor:pointer;
+  }
+  .model-rules-header:hover{background:var(--panel);}
+  .model-rules-title-row{
+    display:flex;align-items:center;gap:8px;
+  }
+  .model-rules-title{
+    font-size:14px;font-weight:600;color:var(--ink);
+  }
+  .model-rules-caret{
+    font-size:10px;color:var(--ink-soft);transition:transform .15s ease;
+    display:inline-block;
+  }
+  .model-rules-caret.open{transform:rotate(90deg);}
+  .model-rules-summary{
     font-size:12.5px;color:var(--ink-soft);
   }
-  .see-history-btn{
-    border:1px solid var(--line);background:#fff;color:var(--ink);font-size:12px;font-weight:500;
-    padding:5px 12px;border-radius:7px;cursor:default;
+  .model-rules-timeline{
+    padding:16px 20px 20px;background:var(--panel);
+    border-top:1px solid var(--line);
   }
-  .see-history-btn:hover{border-color:var(--ink-soft);}
+  .model-rules-timeline-content{
+    max-height:300px;overflow-y:auto;
+  }
+  .timeline-item{
+    display:flex;gap:14px;padding-bottom:18px;position:relative;
+  }
+  .timeline-item:not(:last-child)::after{
+    content:'';position:absolute;left:11px;top:28px;bottom:0;
+    width:2px;background:var(--line);
+  }
+  .timeline-dot{
+    flex-shrink:0;width:24px;height:24px;border-radius:50%;
+    background:var(--purple);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:11px;font-weight:600;margin-top:2px;
+  }
+  .timeline-content{
+    flex:1;padding-top:2px;
+  }
+  .timeline-rule-text{
+    font-size:13px;line-height:1.5;color:var(--ink);margin-bottom:4px;
+  }
+  .timeline-rule-highlight{
+    font-weight:600;color:var(--purple-dark);
+  }
+  .timeline-meta{
+    font-size:11.5px;color:var(--ink-soft);
+  }
 
   .section-details-pane{
     position:fixed;right:0;top:0;bottom:0;width:520px;background:#fff;

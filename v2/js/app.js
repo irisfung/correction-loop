@@ -1299,6 +1299,9 @@ function runAdjustmentPlan(){
   correctionCount++;
   pendingCorrections++;
 
+  // Add rule to timeline
+  addModelRule('Merged <span class="timeline-rule-highlight">Data Governance</span> section with <span class="timeline-rule-highlight">Data Management</span> across all documents');
+
   // Re-render the batch view to update the structure summary
   renderBatchView();
 
@@ -1337,8 +1340,62 @@ function setTopbarMode(mode){
 }
 
 function updateCorrectionSummaryText(){
-  const el = document.getElementById("correctionSummaryText");
-  if(el){ el.textContent = correctionCount + " new correction" + (correctionCount === 1 ? "" : "s") + ". Next model retrain: Friday"; }
+  const el = document.getElementById("modelRulesSummary");
+  if(el){ el.textContent = correctionCount + " new rule" + (correctionCount === 1 ? "" : "s"); }
+}
+
+let modelRulesExpanded = false;
+const modelRulesTimeline = [];
+
+function toggleModelRules(){
+  modelRulesExpanded = !modelRulesExpanded;
+  const timeline = document.getElementById("modelRulesTimeline");
+  const caret = document.getElementById("modelRulesCaret");
+
+  timeline.style.display = modelRulesExpanded ? "block" : "none";
+  caret.classList.toggle("open", modelRulesExpanded);
+
+  if(modelRulesExpanded && modelRulesTimeline.length > 0){
+    renderModelRulesTimeline();
+  }
+}
+
+function addModelRule(ruleText, metadata = {}){
+  const rule = {
+    text: ruleText,
+    timestamp: new Date().toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }),
+    ...metadata
+  };
+  modelRulesTimeline.unshift(rule); // Add to beginning
+
+  if(modelRulesExpanded){
+    renderModelRulesTimeline();
+  }
+}
+
+function renderModelRulesTimeline(){
+  const container = document.getElementById("modelRulesTimelineContent");
+
+  if(modelRulesTimeline.length === 0){
+    container.innerHTML = '<div style="color:var(--ink-soft);font-size:12.5px;text-align:center;padding:20px 0;">No rules added yet</div>';
+    return;
+  }
+
+  container.innerHTML = modelRulesTimeline.map((rule, idx) => `
+    <div class="timeline-item">
+      <div class="timeline-dot">${modelRulesTimeline.length - idx}</div>
+      <div class="timeline-content">
+        <div class="timeline-rule-text">${rule.text}</div>
+        <div class="timeline-meta">${rule.timestamp}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function goBack(){
@@ -1552,6 +1609,8 @@ function resetPrototype(){
   msa004MovedToManagement = false;
   correctionCount = 0;
   pendingCorrections = 0;
+  modelRulesTimeline.length = 0;
+  modelRulesExpanded = false;
 
   const msa004 = DOCS.find(d => d.id === "msa-004");
   if(msa004){

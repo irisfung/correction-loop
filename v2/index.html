@@ -65,8 +65,16 @@
   </div>
 
   <div id="folderSubbar" class="folder-subbar" style="display:none;">
-    <span id="correctionSummaryText">0 new corrections. Next model retrain: Friday</span>
-    <button class="see-history-btn">See History</button>
+    <div class="model-rules-header" onclick="toggleModelRules()">
+      <div class="model-rules-title-row">
+        <span class="model-rules-title">Model Rules</span>
+        <span class="model-rules-caret" id="modelRulesCaret">&#9656;</span>
+      </div>
+      <span class="model-rules-summary" id="modelRulesSummary">0 new rules</span>
+    </div>
+    <div class="model-rules-timeline" id="modelRulesTimeline" style="display:none;">
+      <div class="model-rules-timeline-content" id="modelRulesTimelineContent"></div>
+    </div>
   </div>
 
   <div class="body-row" id="singleView">
