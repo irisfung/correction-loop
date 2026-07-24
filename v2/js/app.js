@@ -525,8 +525,7 @@ function clauseVisualCard(clause, present){
         </div>
         <div class="edit-actions">
           <button class="btn-text" onclick="cancelTypeEdit()">Cancel</button>
-          <button class="btn" onclick="saveClauseEdit('doc')">Apply for this document</button>
-          <button class="btn btn-dark" onclick="saveClauseEdit('schema')">Apply and add config rule</button>
+          <button class="btn btn-dark" onclick="saveClauseEdit('doc')">Apply</button>
         </div>
       </div>`;
   }
@@ -1447,8 +1446,7 @@ function updateAuditCallout(){
       </div>
     </div>
     <div class="audit-actions">
-      <button class="btn" onclick="resolveAudit('doc', this)">Accept for this document</button>
-      <button class="btn btn-dark" onclick="resolveAudit('schema', this)">Accept and add config rule</button>
+      <button class="btn btn-dark" onclick="resolveAudit('doc', this)">Accept</button>
     </div>`;
 }
 
