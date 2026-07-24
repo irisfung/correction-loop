@@ -1437,6 +1437,7 @@ function renderProposedRuleCarousel(){
     </div>
     <div class="proposed-rule-actions">
       <button class="proposed-rule-btn-save" onclick="saveProposedRule(${currentProposedRuleIndex})">Save rule</button>
+      <button class="proposed-rule-btn-refine" onclick="refineProposedRule(${currentProposedRuleIndex})">Refine</button>
       <button class="proposed-rule-btn-dismiss" onclick="dismissProposedRule(${currentProposedRuleIndex})">Dismiss</button>
     </div>
   `;
@@ -1513,6 +1514,11 @@ function saveProposedRule(index){
     currentProposedRuleIndex = Math.min(currentProposedRuleIndex, proposedRules.length - 1);
     renderProposedRuleCarousel();
   }
+}
+
+function refineProposedRule(index){
+  // Placeholder for refine functionality
+  console.log("Refining proposed rule:", index);
 }
 
 function dismissProposedRule(index){
@@ -2109,3 +2115,4 @@ showActiveDoc();
 loadSchemaForActiveDoc();
 computeResults();
 document.getElementById("allFilesLabel").textContent = "All files (" + generateBatchData().total + ")";
+initializeProposedRules();
