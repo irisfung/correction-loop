@@ -1341,7 +1341,7 @@ function setTopbarMode(mode){
 
 function updateCorrectionSummaryText(){
   const el = document.getElementById("modelRulesSummary");
-  if(el){ el.textContent = correctionCount + " new rule" + (correctionCount === 1 ? "" : "s"); }
+  if(el){ el.textContent = correctionCount + " new rule" + (correctionCount === 1 ? "" : "s") + ". Next model retrain: Friday"; }
 }
 
 let modelRulesExpanded = false;
