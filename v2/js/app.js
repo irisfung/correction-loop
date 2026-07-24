@@ -1293,8 +1293,21 @@ function renderAdjustmentPlan(plan){
 }
 
 function runAdjustmentPlan(){
-  // Placeholder for running the plan
-  console.log("Running adjustment plan...");
+  // Set the flag to merge data governance with data management
+  dataGovernanceMerged = true;
+
+  // Increment correction count
+  correctionCount++;
+  pendingCorrections++;
+
+  // Re-render the batch view to update the structure summary
+  renderBatchView();
+
+  // Close the section details pane
+  closeSectionDetails();
+
+  // Update the correction summary text in the folder view
+  updateCorrectionSummaryText();
 }
 
 function refineAdjustmentPlan(){
