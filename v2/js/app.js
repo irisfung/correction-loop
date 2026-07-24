@@ -1300,7 +1300,7 @@ function runAdjustmentPlan(){
   pendingCorrections++;
 
   // Add rule to timeline
-  addModelRule('Merged <span class="timeline-rule-highlight">Data Governance</span> section with <span class="timeline-rule-highlight">Data Management</span> across all documents');
+  addModelRule('Any section regarding practices governing <span class="timeline-rule-highlight">collection, use, storage, and disposal of shared data</span> should be labeled as <span class="timeline-rule-highlight">Data Management</span>');
 
   // Re-render the batch view to update the structure summary
   renderBatchView();
