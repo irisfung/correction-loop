@@ -1075,9 +1075,12 @@ function openSectionDetails(key, name, docs){
   filteredSectionDocs = docs;
   activeSectionDocIndex = -1;
 
-  document.getElementById("sectionDetailsTitle").textContent = name;
+  document.getElementById("sectionDetailsTitle").value = name;
   const desc = SECTION_DESCRIPTIONS[key] || "This section contains important contractual provisions that apply to the agreement.";
-  document.getElementById("sectionDetailsDescText").textContent = desc;
+  document.getElementById("sectionDetailsDescText").value = desc;
+
+  // Reset evaluation state
+  resetEvaluationUI();
 
   populateSectionFilters(docs);
   renderSectionThumbnails();
@@ -1166,6 +1169,53 @@ function selectSectionDoc(idx){
   ` : '<div class="section-viewer-placeholder">Section content not available</div>';
 
   document.getElementById("sectionViewer").innerHTML = content;
+}
+
+let sectionEvaluations = {};
+
+function evaluateSection(type){
+  if(!currentSectionDetails) return;
+
+  const key = currentSectionDetails.key;
+
+  if(type === 'correct'){
+    sectionEvaluations[key] = { type: 'correct' };
+
+    document.getElementById("evalCorrect").classList.add("selected");
+    document.getElementById("evalNeedsAdjustment").classList.remove("selected");
+    document.getElementById("evalSuccess").style.display = "block";
+    document.getElementById("evalAdjustment").style.display = "none";
+  } else if(type === 'needs_adjustment'){
+    sectionEvaluations[key] = { type: 'needs_adjustment', text: '' };
+
+    document.getElementById("evalNeedsAdjustment").classList.add("selected");
+    document.getElementById("evalCorrect").classList.remove("selected");
+    document.getElementById("evalSuccess").style.display = "none";
+    document.getElementById("evalAdjustment").style.display = "block";
+    document.getElementById("evalAdjustmentText").value = '';
+    document.getElementById("evalAdjustmentText").focus();
+  }
+}
+
+function resetEvaluationUI(){
+  document.getElementById("evalCorrect").classList.remove("selected");
+  document.getElementById("evalNeedsAdjustment").classList.remove("selected");
+  document.getElementById("evalSuccess").style.display = "none";
+  document.getElementById("evalAdjustment").style.display = "none";
+  document.getElementById("evalAdjustmentText").value = "";
+
+  // Restore previous evaluation if exists
+  if(currentSectionDetails && sectionEvaluations[currentSectionDetails.key]){
+    const eval = sectionEvaluations[currentSectionDetails.key];
+    if(eval.type === 'correct'){
+      document.getElementById("evalCorrect").classList.add("selected");
+      document.getElementById("evalSuccess").style.display = "block";
+    } else if(eval.type === 'needs_adjustment'){
+      document.getElementById("evalNeedsAdjustment").classList.add("selected");
+      document.getElementById("evalAdjustment").style.display = "block";
+      document.getElementById("evalAdjustmentText").value = eval.text || '';
+    }
+  }
 }
 
 function setTopbarMode(mode){
