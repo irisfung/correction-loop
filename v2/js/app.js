@@ -905,6 +905,10 @@ function renderBatchView(){
   }
 
   function renderTreeBranch(key, name, count, pct, withDocs, withoutDocs){
+    // Store docs data for section details
+    window.sectionDocsData = window.sectionDocsData || {};
+    window.sectionDocsData[key] = withDocs;
+
     return `
     <div class="tree-branch tree-branch-special">
       <div class="tree-branch-row" onclick="toggleTreeBranch('${key}')">
@@ -912,7 +916,7 @@ function renderBatchView(){
         <span class="tree-label">
           ${escapeAttr(name)}
           <span class="tree-caret" id="caret-${key}">&#9656;</span>
-          <button class="tree-edit-btn" onclick="event.stopPropagation();openSectionDetails('${key}','${escapeAttr(name)}',${JSON.stringify(withDocs)})" aria-label="Edit section details">&#9998;</button>
+          <button class="tree-edit-btn" onclick="event.stopPropagation();openSectionDetailsByKey('${key}','${escapeAttr(name)}')" aria-label="Edit section details">&#9998;</button>
         </span>
         <span class="tree-spark"><span class="tree-spark-fill ${pct < 0.5 ? "warn" : "good"}" style="width:${Math.round(pct * 100)}%;"></span></span>
       </div>
@@ -1060,6 +1064,11 @@ const MOCK_DOC_METADATA = {
   4: { counterparty: "Great White Pressure Pumping", date: "2024-06-22", template: "v2.0" },
   14: { counterparty: "Great White Shark", date: "2024-09-10", template: "v2.1" }
 };
+
+function openSectionDetailsByKey(key, name){
+  const docs = window.sectionDocsData && window.sectionDocsData[key] ? window.sectionDocsData[key] : [];
+  openSectionDetails(key, name, docs);
+}
 
 function openSectionDetails(key, name, docs){
   currentSectionDetails = { key, name, docs };
