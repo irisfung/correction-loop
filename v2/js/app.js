@@ -909,7 +909,11 @@ function renderBatchView(){
     <div class="tree-branch tree-branch-special">
       <div class="tree-branch-row" onclick="toggleTreeBranch('${key}')">
         <span class="tree-count">${count}</span>
-        <span class="tree-label">${escapeAttr(name)} <span class="tree-caret" id="caret-${key}">&#9656;</span></span>
+        <span class="tree-label">
+          ${escapeAttr(name)}
+          <span class="tree-caret" id="caret-${key}">&#9656;</span>
+          <button class="tree-edit-btn" onclick="event.stopPropagation();openSectionDetails('${key}','${escapeAttr(name)}',${JSON.stringify(withDocs)})" aria-label="Edit section details">&#9998;</button>
+        </span>
         <span class="tree-spark"><span class="tree-spark-fill ${pct < 0.5 ? "warn" : "good"}" style="width:${Math.round(pct * 100)}%;"></span></span>
       </div>
       <div class="tree-naming-detail" id="detail-${key}" style="display:none;">
@@ -1031,6 +1035,128 @@ function toggleRareClauses(){
   const isOpen = list.style.display !== "none";
   list.style.display = isOpen ? "none" : "block";
   caret.classList.toggle("open", !isOpen);
+}
+
+let currentSectionDetails = null;
+let filteredSectionDocs = [];
+let activeSectionDocIndex = -1;
+
+const SECTION_DESCRIPTIONS = {
+  scope: "Defines the scope of work and services to be performed under the agreement, including how work orders are issued and accepted.",
+  payment: "Establishes compensation terms, invoicing requirements, and reporting obligations for work performed under the agreement.",
+  audit: "Specifies record-keeping requirements and the company's right to audit contractor records for accuracy and compliance.",
+  inspections: "Grants the company the right to inspect work performed by the contractor to ensure it meets required standards.",
+  independent_contractor: "Clarifies that the contractor is an independent entity, not an employee or agent of the company.",
+  taxes: "Assigns responsibility for obtaining necessary licenses, permits, bonds, and regulatory compliance to the contractor.",
+  data_governance: "Outlines data management practices governing collection, use, storage, and disposal of shared data under the agreement.",
+  data_management: "Establishes protocols for handling, securing, and managing data exchanged between parties during the contract term.",
+  ai_usage: "Requires disclosure and approval before using artificial intelligence tools or models in performing contracted work.",
+  termination: "Defines the duration of the agreement and procedures for terminating the contract by either party.",
+  governing_law: "Specifies which state's laws govern the agreement and where legal disputes must be resolved."
+};
+
+const MOCK_DOC_METADATA = {
+  0: { counterparty: "Great White Pressure Pumping", date: "2024-03-15", template: "v1.2" },
+  4: { counterparty: "Great White Pressure Pumping", date: "2024-06-22", template: "v2.0" },
+  14: { counterparty: "Great White Shark", date: "2024-09-10", template: "v2.1" }
+};
+
+function openSectionDetails(key, name, docs){
+  currentSectionDetails = { key, name, docs };
+  filteredSectionDocs = docs;
+  activeSectionDocIndex = -1;
+
+  document.getElementById("sectionDetailsTitle").textContent = name;
+  const desc = SECTION_DESCRIPTIONS[key] || "This section contains important contractual provisions that apply to the agreement.";
+  document.getElementById("sectionDetailsDescText").textContent = desc;
+
+  populateSectionFilters(docs);
+  renderSectionThumbnails();
+  document.getElementById("sectionDetailsPane").style.display = "flex";
+}
+
+function closeSectionDetails(){
+  document.getElementById("sectionDetailsPane").style.display = "none";
+  currentSectionDetails = null;
+  filteredSectionDocs = [];
+  activeSectionDocIndex = -1;
+}
+
+function populateSectionFilters(docs){
+  const counterparties = new Set();
+  const dates = new Set();
+  const templates = new Set();
+
+  docs.forEach(d => {
+    const meta = MOCK_DOC_METADATA[d.index];
+    if(meta){
+      counterparties.add(meta.counterparty);
+      dates.add(meta.date);
+      templates.add(meta.template);
+    }
+  });
+
+  const cpSelect = document.getElementById("filterCounterparty");
+  cpSelect.innerHTML = '<option value="">All counterparties</option>' +
+    Array.from(counterparties).map(c => `<option value="${escapeAttr(c)}">${escapeAttr(c)}</option>`).join("");
+
+  const dateSelect = document.getElementById("filterDate");
+  dateSelect.innerHTML = '<option value="">All dates</option>' +
+    Array.from(dates).sort().reverse().map(d => `<option value="${escapeAttr(d)}">${escapeAttr(d)}</option>`).join("");
+
+  const tmplSelect = document.getElementById("filterTemplate");
+  tmplSelect.innerHTML = '<option value="">All template versions</option>' +
+    Array.from(templates).sort().map(t => `<option value="${escapeAttr(t)}">${escapeAttr(t)}</option>`).join("");
+}
+
+function updateSectionDetailsFilters(){
+  if(!currentSectionDetails) return;
+
+  const cpFilter = document.getElementById("filterCounterparty").value;
+  const dateFilter = document.getElementById("filterDate").value;
+  const tmplFilter = document.getElementById("filterTemplate").value;
+
+  filteredSectionDocs = currentSectionDetails.docs.filter(d => {
+    const meta = MOCK_DOC_METADATA[d.index];
+    if(!meta) return true;
+    if(cpFilter && meta.counterparty !== cpFilter) return false;
+    if(dateFilter && meta.date !== dateFilter) return false;
+    if(tmplFilter && meta.template !== tmplFilter) return false;
+    return true;
+  });
+
+  activeSectionDocIndex = -1;
+  renderSectionThumbnails();
+  document.getElementById("sectionViewer").innerHTML = '<div class="section-viewer-placeholder">Select a document from the thumbnails to preview</div>';
+}
+
+function renderSectionThumbnails(){
+  const container = document.getElementById("sectionThumbnails");
+  container.innerHTML = filteredSectionDocs.map((d, idx) => `
+    <div class="section-thumbnail ${idx === activeSectionDocIndex ? 'active' : ''}" onclick="selectSectionDoc(${idx})">
+      <div>Doc ${d.index + 1}</div>
+      <div class="section-thumbnail-label">${escapeAttr(d.name)}</div>
+    </div>
+  `).join("");
+}
+
+function selectSectionDoc(idx){
+  activeSectionDocIndex = idx;
+  renderSectionThumbnails();
+
+  const doc = filteredSectionDocs[idx];
+  const docData = DOCS.find(d => d.label === doc.name);
+  if(!docData) return;
+
+  const clause = (docData.clauses || []).find(c => c.clauseId === currentSectionDetails.key);
+  const content = clause ? `
+    <div class="section-viewer-content">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px;">${escapeAttr(clause.heading)}</div>
+      <div style="color:var(--ink-soft);">${escapeAttr(clause.text)}</div>
+    </div>
+  ` : '<div class="section-viewer-placeholder">Section content not available</div>';
+
+  document.getElementById("sectionViewer").innerHTML = content;
 }
 
 function setTopbarMode(mode){

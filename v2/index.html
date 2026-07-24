@@ -687,6 +687,37 @@
       <div class="tree-wrap" id="treeWrap"></div>
     </div>
   </div>
+
+  <div class="section-details-pane" id="sectionDetailsPane" style="display:none;">
+    <div class="section-details-header">
+      <button class="section-details-close" onclick="closeSectionDetails()" aria-label="Close">&#10005;</button>
+      <div class="section-details-title" id="sectionDetailsTitle">Data Governance</div>
+      <div class="section-details-ai-desc" id="sectionDetailsDesc">
+        <span class="ai-badge">&#10024; AI-generated</span>
+        <p id="sectionDetailsDescText">This section outlines the data management practices governing the collection, use, storage, and disposal of data shared under the agreement.</p>
+      </div>
+    </div>
+    <div class="section-details-filters">
+      <div class="section-filter-label">Filter documents:</div>
+      <div class="section-filters-row">
+        <select class="section-filter-select" id="filterCounterparty" onchange="updateSectionDetailsFilters()">
+          <option value="">All counterparties</option>
+        </select>
+        <select class="section-filter-select" id="filterDate" onchange="updateSectionDetailsFilters()">
+          <option value="">All dates</option>
+        </select>
+        <select class="section-filter-select" id="filterTemplate" onchange="updateSectionDetailsFilters()">
+          <option value="">All template versions</option>
+        </select>
+      </div>
+    </div>
+    <div class="section-details-body">
+      <div class="section-thumbnails" id="sectionThumbnails"></div>
+      <div class="section-viewer" id="sectionViewer">
+        <div class="section-viewer-placeholder">Select a document from the thumbnails to preview</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="reset-bar">
