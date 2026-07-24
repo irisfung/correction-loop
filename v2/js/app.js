@@ -1203,6 +1203,7 @@ function resetEvaluationUI(){
   document.getElementById("evalSuccess").style.display = "none";
   document.getElementById("evalAdjustment").style.display = "none";
   document.getElementById("evalAdjustmentText").value = "";
+  document.getElementById("evalPlan").style.display = "none";
 
   // Restore previous evaluation if exists
   if(currentSectionDetails && sectionEvaluations[currentSectionDetails.key]){
@@ -1214,8 +1215,103 @@ function resetEvaluationUI(){
       document.getElementById("evalNeedsAdjustment").classList.add("selected");
       document.getElementById("evalAdjustment").style.display = "block";
       document.getElementById("evalAdjustmentText").value = eval.text || '';
+      if(eval.plan){
+        document.getElementById("evalPlan").style.display = "block";
+        renderAdjustmentPlan(eval.plan);
+      }
     }
   }
+}
+
+function generateAdjustmentPlan(){
+  const input = document.getElementById("evalAdjustmentText").value.trim().toLowerCase();
+
+  // Check for merge/relabel pattern
+  const isMergePattern = input.includes('merge') &&
+    (input.includes('data management') || input.includes('data governance'));
+
+  let plan;
+  if(isMergePattern){
+    plan = {
+      type: 'merge',
+      steps: [
+        {
+          text: 'Replace section label <span class="eval-plan-step-highlight">"Data Governance"</span> with <span class="eval-plan-step-highlight">"Data Management"</span> for 32 documents'
+        },
+        {
+          text: 'Delete the <span class="eval-plan-step-highlight">"Data Governance"</span> section'
+        },
+        {
+          text: 'Log improved section labeling adjustment as a correction to improve your extraction model'
+        }
+      ]
+    };
+  } else {
+    plan = {
+      type: 'manual_review',
+      message: "I couldn't turn this into an action - flag for manual review instead?"
+    };
+  }
+
+  // Store plan in evaluation
+  if(currentSectionDetails){
+    sectionEvaluations[currentSectionDetails.key] = {
+      type: 'needs_adjustment',
+      text: document.getElementById("evalAdjustmentText").value,
+      plan: plan
+    };
+  }
+
+  renderAdjustmentPlan(plan);
+  document.getElementById("evalPlan").style.display = "block";
+}
+
+function renderAdjustmentPlan(plan){
+  const contentEl = document.getElementById("evalPlanContent");
+  const actionsEl = document.getElementById("evalPlanActions");
+
+  if(plan.type === 'merge'){
+    contentEl.innerHTML = plan.steps.map((step, i) => `
+      <div class="eval-plan-step">
+        <div class="eval-plan-step-num">${i + 1}</div>
+        <div class="eval-plan-step-text">${step.text}</div>
+      </div>
+    `).join('');
+
+    actionsEl.innerHTML = `
+      <button class="eval-plan-btn-primary" onclick="runAdjustmentPlan()">Run plan</button>
+      <button class="eval-plan-btn-secondary" onclick="refineAdjustmentPlan()">Refine</button>
+      <button class="eval-plan-btn-tertiary" onclick="cancelAdjustmentPlan()">Cancel</button>
+    `;
+  } else {
+    contentEl.innerHTML = `<div class="eval-plan-message">${plan.message}</div>`;
+    actionsEl.innerHTML = `
+      <button class="eval-plan-btn-primary" onclick="flagForReview()">Flag for review</button>
+      <button class="eval-plan-btn-tertiary" onclick="cancelAdjustmentPlan()">Cancel</button>
+    `;
+  }
+}
+
+function runAdjustmentPlan(){
+  // Placeholder for running the plan
+  console.log("Running adjustment plan...");
+}
+
+function refineAdjustmentPlan(){
+  document.getElementById("evalPlan").style.display = "none";
+  document.getElementById("evalAdjustmentText").focus();
+}
+
+function cancelAdjustmentPlan(){
+  document.getElementById("evalPlan").style.display = "none";
+  if(currentSectionDetails && sectionEvaluations[currentSectionDetails.key]){
+    delete sectionEvaluations[currentSectionDetails.key].plan;
+  }
+}
+
+function flagForReview(){
+  // Placeholder for flagging
+  console.log("Flagging for manual review...");
 }
 
 function setTopbarMode(mode){

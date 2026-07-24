@@ -728,7 +728,12 @@
       </div>
       <div class="section-eval-adjustment" id="evalAdjustment" style="display:none;">
         <textarea class="section-eval-textarea" id="evalAdjustmentText" placeholder="e.g. Instruct the model to split, relabel, exclude, etc. documents in this section..."></textarea>
-        <button class="section-eval-submit-btn" id="evalSubmitBtn">Make adjustment plan</button>
+        <button class="section-eval-submit-btn" id="evalSubmitBtn" onclick="generateAdjustmentPlan()">Make adjustment plan</button>
+      </div>
+      <div class="section-eval-plan" id="evalPlan" style="display:none;">
+        <div class="eval-plan-header" id="evalPlanHeader">Adjustment plan</div>
+        <div class="eval-plan-content" id="evalPlanContent"></div>
+        <div class="eval-plan-actions" id="evalPlanActions"></div>
       </div>
     </div>
   </div>
