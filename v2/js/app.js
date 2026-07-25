@@ -1421,7 +1421,7 @@ function renderProposedRuleCarousel(){
     <div class="proposed-rule-header">Proposed rule:</div>
     <div class="proposed-rule-text">${rule.text}</div>
     <div class="proposed-rule-evidence">
-      Similar correction made in ${rule.count} documents: ${docLinks}
+      Similar correction made in ${rule.documents.length} documents: ${docLinks}
     </div>
     <div class="proposed-rule-viewer">
       <div class="proposed-rule-thumbnails">
@@ -1564,7 +1564,7 @@ function renderModelRulesTimeline(){
 
   container.innerHTML = modelRulesTimeline.map((rule, idx) => `
     <div class="timeline-item">
-      <div class="timeline-dot">${modelRulesTimeline.length - idx}</div>
+      <div class="timeline-dot">+</div>
       <div class="timeline-content">
         <div class="timeline-rule-text">${rule.text}</div>
         <div class="timeline-meta">${rule.timestamp}</div>
