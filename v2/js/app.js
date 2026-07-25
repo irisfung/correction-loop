@@ -1658,9 +1658,15 @@ function updateAuditCallout(){
   callout.style.display = "block";
   if(auditResolved){
     callout.classList.add("resolved");
-    callout.innerHTML = auditResolved === "schema"
-      ? `<div class="audit-resolved">&#10003; Schema updated &#8212; the "links" field will now capture Exhibit references for the AI Usage clause across all documents.</div>`
-      : `<div class="audit-resolved">&#10003; Accepted for MSA_014.pdf only &#8212; "Exhibit A" has been linked to this document's AI Usage clause.</div>`;
+    if(auditResolved === "schema"){
+      callout.innerHTML = `<div class="audit-resolved">&#10003; Schema updated &#8212; the "links" field will now capture Exhibit references for the AI Usage clause across all documents.</div>`;
+    } else {
+      callout.innerHTML = `
+        <div class="audit-resolved audit-resolved-neutral">
+          <div>&#10003; Accepted for MSA_014.pdf only &#8212; "Exhibit A" has been linked to this document's AI Usage clause.</div>
+          <div class="audit-pattern-note">Note: 5 similar corrections made, flagged as potential rule. See <a href="#" onclick="event.preventDefault();openModelRulesFromAudit()" class="audit-model-rules-link">Model Rules</a> to review.</div>
+        </div>`;
+    }
     auditAutoHideTimer = setTimeout(() => { callout.style.display = "none"; }, 5000);
     return;
   }
@@ -1680,6 +1686,18 @@ function updateAuditCallout(){
     <div class="audit-actions">
       <button class="btn btn-dark" onclick="resolveAudit('doc', this)">Accept</button>
     </div>`;
+}
+
+function openModelRulesFromAudit(){
+  // Navigate to batch view
+  runBatchExtraction();
+
+  // Open Model Rules section after batch view loads
+  setTimeout(() => {
+    if(!modelRulesExpanded){
+      toggleModelRules();
+    }
+  }, 1500);
 }
 
 function dismissAudit(){
