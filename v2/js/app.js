@@ -1365,6 +1365,9 @@ function toggleModelRules(){
     if(modelRulesTimeline.length > 0){
       renderModelRulesTimeline();
     }
+  } else {
+    // Collapse the timeline when closing
+    document.getElementById("modelRulesProposed").style.display = "none";
   }
 }
 
@@ -1707,16 +1710,14 @@ function updateAuditCallout(){
     </div>`;
 }
 
+let openModelRulesAfterBatch = false;
+
 function openModelRulesFromAudit(){
+  // Set flag to open Model Rules after batch loads
+  openModelRulesAfterBatch = true;
+
   // Navigate to batch view
   runBatchExtraction();
-
-  // Open Model Rules section after batch view loads
-  setTimeout(() => {
-    if(!modelRulesExpanded){
-      toggleModelRules();
-    }
-  }, 1500);
 }
 
 function dismissAudit(){
@@ -1800,6 +1801,14 @@ function runBatchExtraction(){
   document.getElementById("singleView").style.display = "none";
   document.getElementById("batchView").style.display = "none";
   document.getElementById("batchLoading").style.display = "flex";
+
+  // Close Model Rules by default unless opening from audit link
+  if(!openModelRulesAfterBatch && modelRulesExpanded){
+    modelRulesExpanded = false;
+    document.getElementById("modelRulesTimeline").style.display = "none";
+    document.getElementById("modelRulesCaret").classList.remove("open");
+  }
+
   setTimeout(() => {
     if(pendingCorrections > 0){
       correctionCount += pendingCorrections;
@@ -1809,6 +1818,14 @@ function runBatchExtraction(){
     document.getElementById("batchLoading").style.display = "none";
     document.getElementById("batchView").style.display = "flex";
     setTopbarMode("folder");
+
+    // Open Model Rules if requested from audit
+    if(openModelRulesAfterBatch){
+      openModelRulesAfterBatch = false;
+      if(!modelRulesExpanded){
+        toggleModelRules();
+      }
+    }
   }, 1400);
 }
 
