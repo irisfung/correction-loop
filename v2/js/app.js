@@ -1375,25 +1375,44 @@ function initializeProposedRules(){
       documents: [
         { index: 0, name: "MSA_001" },
         { index: 4, name: "MSA_004" },
-        { index: 14, name: "MSA_014" }
-      ],
-      count: 12
+        { index: 14, name: "MSA_014" },
+        { index: 1, name: "MSA_002" },
+        { index: 2, name: "MSA_003" },
+        { index: 5, name: "MSA_005" }
+      ]
     },
     {
       text: "Clauses defining audit rights and record retention requirements should be labeled as Audit",
       documents: [
         { index: 0, name: "MSA_001" },
-        { index: 4, name: "MSA_004" }
-      ],
-      count: 8
+        { index: 4, name: "MSA_004" },
+        { index: 14, name: "MSA_014" },
+        { index: 1, name: "MSA_002" },
+        { index: 2, name: "MSA_003" },
+        { index: 5, name: "MSA_005" },
+        { index: 6, name: "MSA_006" },
+        { index: 7, name: "MSA_007" }
+      ]
     },
     {
       text: "Provisions regarding payment terms, invoicing, and compensation should be labeled as Payment",
       documents: [
         { index: 0, name: "MSA_001" },
-        { index: 14, name: "MSA_014" }
-      ],
-      count: 15
+        { index: 14, name: "MSA_014" },
+        { index: 1, name: "MSA_002" },
+        { index: 2, name: "MSA_003" },
+        { index: 5, name: "MSA_005" },
+        { index: 6, name: "MSA_006" },
+        { index: 7, name: "MSA_007" },
+        { index: 8, name: "MSA_008" },
+        { index: 9, name: "MSA_009" },
+        { index: 10, name: "MSA_010" },
+        { index: 11, name: "MSA_011" },
+        { index: 12, name: "MSA_012" },
+        { index: 13, name: "MSA_013" },
+        { index: 3, name: "MSA_003" },
+        { index: 15, name: "MSA_015" }
+      ]
     }
   ];
 
@@ -1664,7 +1683,7 @@ function updateAuditCallout(){
       callout.innerHTML = `
         <div class="audit-resolved audit-resolved-neutral">
           <div>&#10003; Accepted for MSA_014.pdf only &#8212; "Exhibit A" has been linked to this document's AI Usage clause.</div>
-          <div class="audit-pattern-note">Note: 5 similar corrections made, flagged as potential rule. See <a href="#" onclick="event.preventDefault();openModelRulesFromAudit()" class="audit-model-rules-link">Model Rules</a> to review.</div>
+          <div class="audit-pattern-note">Note: 6 similar corrections made, flagged as potential rule. See <a href="#" onclick="event.preventDefault();openModelRulesFromAudit()" class="audit-model-rules-link">Model Rules</a> to review.</div>
         </div>`;
     }
     auditAutoHideTimer = setTimeout(() => { callout.style.display = "none"; }, 5000);
@@ -1728,10 +1747,45 @@ function finalizeAuditResolution(scope){
 
   if(scope === "schema"){
     applyConfigRuleForEdit("Add any references to Exhibits or red lines as links to each clause.");
+  } else if(scope === "doc"){
+    // Add the exhibit linking rule to proposed rules
+    addExhibitLinkingProposedRule();
   }
 
   updateAuditCallout();
   computeResults();
+}
+
+function addExhibitLinkingProposedRule(){
+  // Check if rule already exists
+  const exists = proposedRules.some(r => r.text.includes("Exhibit references"));
+  if(exists) return;
+
+  const newRule = {
+    text: "Clauses referencing exhibits should have those exhibits linked in the links field",
+    documents: [
+      { index: 0, name: "MSA_001" },
+      { index: 4, name: "MSA_004" },
+      { index: 14, name: "MSA_014" },
+      { index: 1, name: "MSA_002" },
+      { index: 2, name: "MSA_003" },
+      { index: 5, name: "MSA_005" }
+    ]
+  };
+
+  proposedRules.push(newRule);
+
+  // Update flag
+  const flag = document.getElementById("modelRulesFlag");
+  if(flag){
+    flag.textContent = `${proposedRules.length} rule${proposedRules.length === 1 ? '' : 's'} ready for review`;
+    flag.style.display = "inline-block";
+  }
+
+  // Re-render carousel if it's open
+  if(modelRulesExpanded && document.getElementById("modelRulesProposed").style.display !== "none"){
+    renderProposedRuleCarousel();
+  }
 }
 
 function revertPromptChange(){
