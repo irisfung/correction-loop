@@ -986,7 +986,6 @@ function renderBatchView(){
 
   document.getElementById("treeWrap").innerHTML = `
     <div class="tree-root">${data.total} documents</div>
-    <div class="tree-root-sub">Every branch below is a section found somewhere in the batch &#8212; a short branch just means it's less common, not necessarily wrong.</div>
     <div class="tree-branches">
       ${branchesHtml}
       ${namingHtml}
@@ -1440,10 +1439,9 @@ function renderProposedRuleCarousel(){
   ).join(', ');
 
   card.innerHTML = `
-    <div class="proposed-rule-header">Proposed rule:</div>
     <div class="proposed-rule-text">${rule.text}</div>
     <div class="proposed-rule-evidence">
-      Similar correction made in ${rule.documents.length} documents: ${docLinks}
+      ${rule.documents.length} documents: ${docLinks}
     </div>
     <div class="proposed-rule-viewer">
       <div class="proposed-rule-thumbnails">
@@ -1685,8 +1683,8 @@ function updateAuditCallout(){
     } else {
       callout.innerHTML = `
         <div class="audit-resolved audit-resolved-neutral">
-          <div>&#10003; Accepted for MSA_014.pdf only &#8212; "Exhibit A" has been linked to this document's AI Usage clause.</div>
-          <div class="audit-pattern-note">Note: 6 similar corrections made, flagged as potential rule. See <a href="#" onclick="event.preventDefault();openModelRulesFromAudit()" class="audit-model-rules-link">Model Rules</a> to review.</div>
+          <div>&#10003; "Exhibit A" linked to AI Usage clause.</div>
+          <div class="audit-pattern-note">6 similar corrections flagged as potential rule. See <a href="#" onclick="event.preventDefault();openModelRulesFromAudit()" class="audit-model-rules-link">Model Rules</a> to review.</div>
         </div>`;
     }
     auditAutoHideTimer = setTimeout(() => { callout.style.display = "none"; }, 5000);
@@ -1702,7 +1700,7 @@ function updateAuditCallout(){
       <span class="audit-icon">&#128279;</span>
       <div>
         <div class="audit-title">Possible link</div>
-        <p class="audit-desc">This clause references <b>&#8220;Exhibit A&#8221;</b> but no exhibit was linked during extraction &#8212; the <code>links</code> field came back empty. Link it now?</p>
+        <p class="audit-desc">This clause references <b>&#8220;Exhibit A&#8221;</b> but the <code>links</code> field is empty. Link it now?</p>
       </div>
     </div>
     <div class="audit-actions">
